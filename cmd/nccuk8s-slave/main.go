@@ -1,4 +1,4 @@
-package nccuk8sslave
+package main
 
 import "fmt"
 

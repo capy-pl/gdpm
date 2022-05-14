@@ -1,4 +1,4 @@
-package nccuk8sclient
+package main
 
 import "fmt"
 

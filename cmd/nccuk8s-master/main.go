@@ -1,4 +1,4 @@
-package nccuk8smaster
+package main
 
 import "fmt"
 
