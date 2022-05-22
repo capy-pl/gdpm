@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gdpm/service"
 	"github.com/google/uuid"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -14,6 +15,9 @@ import (
 
 var HostAddress string = "0.0.0.0"
 var HostPort string = "8888"
+
+var ServiceWaitingQueue []*service.Service
+var ServiceMap map[string]*service.Service = make(map[string]*service.Service)
 
 func register() string {
 	tcpAddr, _ := net.ResolveTCPAddr("tcp", strings.Join([]string{HostAddress, HostPort}, ":"))
@@ -81,7 +85,35 @@ func main() {
 		for _, event := range response.Events {
 			switch event.Type {
 			case mvccpb.PUT:
+				if event.PrevKv != nil {
+					log.Printf("PUT Prev: %s %s\n", string(event.PrevKv.Key), string(event.PrevKv.Value))
+				}
 				log.Printf("PUT: %s %s\n", string(event.Kv.Key), string(event.Kv.Value))
+				kv := service.ParseServiceKV(string(event.Kv.Key), string(event.Kv.Value))
+				if sv, exist := ServiceMap[kv.ServiceId]; !exist && event.PrevKv == nil {
+					newsv := &service.Service{
+						Id:      kv.ServiceId,
+						State:   service.Waiting,
+						Command: []string{},
+					}
+					ServiceMap[newsv.Id] = newsv
+					ServiceWaitingQueue = append(ServiceWaitingQueue, newsv)
+					log.Printf("New Service Created: %s\n", kv.ServiceId)
+				} else {
+					switch kv.Key {
+					case service.Id:
+						sv.Id = kv.Value
+					case service.Command:
+						sv.Command = strings.Split(kv.Value, " ")
+					case service.InstanceNum:
+						sv.InstanceNum = 1
+					}
+				}
+				sv := ServiceMap[kv.ServiceId]
+				if sv.State == service.Waiting && sv.Command != nil && len(sv.Command) > 0 && sv.InstanceNum > 0 {
+					sv.State = service.Ready
+					log.Printf("Service Ready To Be Scheduled: %s\n", sv.Id)
+				}
 			case mvccpb.DELETE:
 				log.Printf("DELETE %s %s\n", string(event.Kv.Key), string(event.Kv.Value))
 			}

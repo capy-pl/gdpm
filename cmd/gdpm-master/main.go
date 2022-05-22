@@ -8,14 +8,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/gdpm/service"
+	"github.com/gdpm/slave"
 	"github.com/google/uuid"
-	"github.com/nccuk8s/service"
-	"github.com/nccuk8s/slave"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 var workerNum int = 4
-
 var ListeningAddress string = "0.0.0.0"
 var ListeningPort string = "8888"
 

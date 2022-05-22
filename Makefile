@@ -1,9 +1,9 @@
 
 BIN_PATH = bin
 SRC_PATH = cmd
-CLIENT_NAME = nccuk8s-client
-MASTER_NAME = nccuk8s-master
-SLAVE_NAME = nccuk8s-slave
+CLIENT_NAME = gdpm-client
+MASTER_NAME = gdpm-master
+SLAVE_NAME = gdpm-slave
 
 all: client master slave
 

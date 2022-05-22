@@ -1,4 +1,4 @@
-module github.com/nccuk8s
+module github.com/gdpm
 
 go 1.18
 
