@@ -52,9 +52,9 @@ func sendHeartBeat(ctx context.Context) {
 		}
 	}
 }
+
 func updateService(sv *service.Service) {
 	// only process the change of instance number for now
-	sv.Cmds.Lock.Lock()
 	currInstanceNum := len(sv.Cmds.Queue)
 	newInstanceNum := sv.InstanceNum
 	log.Printf("%s instance number: %v -> %v\n", sv.Id, currInstanceNum, newInstanceNum)
@@ -63,19 +63,23 @@ func updateService(sv *service.Service) {
 			go spawnCommand(sv)
 		}
 	} else if newInstanceNum < currInstanceNum {
+		sv.Cmds.Lock.Lock()
+		defer sv.Cmds.Lock.Unlock()
 		for i := 0; i < currInstanceNum-newInstanceNum; i++ {
-			if !sv.Cmds.Queue[i].ProcessState.Exited() {
+			if sv.Cmds.Queue[i].ProcessState == nil {
 				sv.Cmds.Queue[i].Process.Kill()
 			}
 		}
 		sv.Cmds.Queue = sv.Cmds.Queue[currInstanceNum-newInstanceNum:]
 	}
-	sv.Cmds.Lock.Unlock()
 }
 
 func spawnCommand(sv *service.Service) {
+	sv.Cmds.Lock.Lock()
 	command := exec.Command(sv.Command[0], sv.Command[1:]...)
 	sv.Cmds.Queue = append(sv.Cmds.Queue, command)
+	sv.Cmds.Lock.Unlock()
+
 	err := command.Start()
 	if err != nil {
 		sv.State = service.Error
@@ -83,9 +87,6 @@ func spawnCommand(sv *service.Service) {
 	err = command.Wait()
 	if err != nil {
 		log.Printf("process exit with error %v", err)
-		sv.State = service.Error
-	} else {
-		sv.State = service.Exit
 	}
 }
 
