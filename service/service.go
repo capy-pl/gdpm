@@ -1,7 +1,10 @@
 package service
 
 import (
+	"fmt"
+	"os/exec"
 	"strings"
+	"sync"
 
 	"github.com/google/uuid"
 )
@@ -15,6 +18,7 @@ const (
 	Scheduled   ServiceState = 1
 	Running     ServiceState = 2
 	Exit        ServiceState = 3
+	Error       ServiceState = 4
 )
 
 const (
@@ -24,11 +28,17 @@ const (
 	State       = "State"
 )
 
+type ServiceCommandQueue struct {
+	Lock  sync.Mutex
+	Queue []*exec.Cmd
+}
+
 type Service struct {
 	Id          string
 	Command     []string
 	InstanceNum int
 	State       ServiceState
+	Cmds        ServiceCommandQueue
 }
 
 type ServiceKV struct {
@@ -53,7 +63,7 @@ func (service *Service) KVs() [][]string {
 	rets := make([][]string, 0)
 	rets = append(rets, []string{Id, service.Id})
 	rets = append(rets, []string{Command, strings.Join(service.Command, " ")})
-	rets = append(rets, []string{InstanceNum, string(service.InstanceNum)})
+	rets = append(rets, []string{InstanceNum, fmt.Sprintf("%d", service.InstanceNum)})
 	rets = append(rets, []string{State, string(service.State)})
 	return rets
 }

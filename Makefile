@@ -21,5 +21,8 @@ run-master:
 run-slave:
 	go run ${SRC_PATH}/${SLAVE_NAME}/main.go
 
+clean-key:
+	etcdctl del "" --from-key=true
+
 clean:
 	rm -rf bin

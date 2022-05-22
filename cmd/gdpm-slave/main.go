@@ -4,7 +4,10 @@ import (
 	"context"
 	"log"
 	"net"
+	"os/exec"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gdpm/service"
@@ -49,20 +52,42 @@ func sendHeartBeat(ctx context.Context) {
 		}
 	}
 }
+func updateService(sv *service.Service) {
+	// only process the change of instance number for now
+	sv.Cmds.Lock.Lock()
+	currInstanceNum := len(sv.Cmds.Queue)
+	newInstanceNum := sv.InstanceNum
+	log.Printf("%s instance number: %v -> %v\n", sv.Id, currInstanceNum, newInstanceNum)
+	if newInstanceNum > currInstanceNum {
+		for i := 0; i < newInstanceNum-currInstanceNum; i++ {
+			go spawnCommand(sv)
+		}
+	} else if newInstanceNum < currInstanceNum {
+		for i := 0; i < currInstanceNum-newInstanceNum; i++ {
+			if !sv.Cmds.Queue[i].ProcessState.Exited() {
+				sv.Cmds.Queue[i].Process.Kill()
+			}
+		}
+		sv.Cmds.Queue = sv.Cmds.Queue[currInstanceNum-newInstanceNum:]
+	}
+	sv.Cmds.Lock.Unlock()
+}
 
-// func executeCommand(args []string) {
-// 	command := exec.Command(args[0], args[1:]...)
-// 	for true {
-// 		if err := command.Start(); err != nil {
-// 			log.Panic(err)
-// 			break
-// 		}
-
-// 		if err := command.Wait(); err != nil {
-
-// 		}
-// 	}
-// }
+func spawnCommand(sv *service.Service) {
+	command := exec.Command(sv.Command[0], sv.Command[1:]...)
+	sv.Cmds.Queue = append(sv.Cmds.Queue, command)
+	err := command.Start()
+	if err != nil {
+		sv.State = service.Error
+	}
+	err = command.Wait()
+	if err != nil {
+		log.Printf("process exit with error %v", err)
+		sv.State = service.Error
+	} else {
+		sv.State = service.Exit
+	}
+}
 
 func main() {
 	id := register()
@@ -95,6 +120,10 @@ func main() {
 						Id:      kv.ServiceId,
 						State:   service.Waiting,
 						Command: []string{},
+						Cmds: service.ServiceCommandQueue{
+							Lock:  sync.Mutex{},
+							Queue: make([]*exec.Cmd, 0),
+						},
 					}
 					ServiceMap[newsv.Id] = newsv
 					ServiceWaitingQueue = append(ServiceWaitingQueue, newsv)
@@ -106,13 +135,18 @@ func main() {
 					case service.Command:
 						sv.Command = strings.Split(kv.Value, " ")
 					case service.InstanceNum:
-						sv.InstanceNum = 1
+						sv.InstanceNum, _ = strconv.Atoi(kv.Value)
 					}
 				}
 				sv := ServiceMap[kv.ServiceId]
+				if sv.State == service.Running {
+					updateService(sv)
+				}
 				if sv.State == service.Waiting && sv.Command != nil && len(sv.Command) > 0 && sv.InstanceNum > 0 {
 					sv.State = service.Ready
 					log.Printf("Service Ready To Be Scheduled: %s\n", sv.Id)
+					sv.State = service.Running
+					updateService(sv)
 				}
 			case mvccpb.DELETE:
 				log.Printf("DELETE %s %s\n", string(event.Kv.Key), string(event.Kv.Value))

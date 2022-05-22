@@ -42,7 +42,7 @@ func listenForSlave(ch chan *net.TCPConn) {
 
 func test(pool *slave.SlavePool) {
 	time.Sleep(100 * time.Millisecond)
-	sv := service.NewService("test tttt", 1)
+	sv := service.NewService("python test.py", 1)
 	pool.ScheduleService(sv)
 }
 
