@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 	"net"
+	"net/http"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -11,12 +13,14 @@ import (
 	"github.com/gdpm/service"
 	"github.com/gdpm/slave"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 var workerNum int = 4
 var ListeningAddress string = "0.0.0.0"
 var ListeningPort string = "8888"
+var HTTPListeningPort string = "8989"
 
 func listenForSlave(ch chan *net.TCPConn) {
 	address, _ := net.ResolveTCPAddr("tcp", strings.Join([]string{ListeningAddress, ListeningPort}, ":"))
@@ -68,6 +72,70 @@ func handleConnection(ch <-chan *net.TCPConn, pool *slave.SlavePool) {
 	}
 }
 
+func handleCreateService(pool *slave.SlavePool) func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
+		if req.Method == http.MethodPost {
+			log.Println("New service request is received.")
+			req.ParseForm()
+			command := req.PostFormValue("Command")
+			if len(command) == 0 {
+				http.Error(res, "Command is required field", http.StatusBadRequest)
+				return
+			}
+			log.Printf("Command is %s\n", command)
+			instanceNumStr := req.PostFormValue("InstanceNum")
+			if len(instanceNumStr) == 0 {
+				instanceNumStr = "1"
+			}
+			log.Printf("Instance number is %s\n", instanceNumStr)
+			instanceNum, err := strconv.Atoi(instanceNumStr)
+			if err != nil {
+				http.Error(res, "not a valid instanceNum", http.StatusBadRequest)
+				return
+			}
+			sv := service.NewService(command, instanceNum)
+			log.Printf("[New] %s is created. Command: %s\n", sv.Id, strings.Join(sv.Command, " "))
+
+			// pool.ScheduleService(sv)
+
+			res.WriteHeader(http.StatusOK)
+			res.Write([]byte(sv.Id))
+		} else {
+			http.Error(res, "method not allowed", http.StatusMethodNotAllowed)
+		}
+	}
+}
+
+func handleService(res http.ResponseWriter, req *http.Request) {
+
+}
+
+type GetNodesResponse struct {
+}
+
+func handleGetNodes(res http.ResponseWriter, req *http.Request) {
+
+}
+
+func startHttpServer(pool *slave.SlavePool) {
+	r := mux.NewRouter()
+	serviceHandle := r.PathPrefix("/service").Subrouter()
+	serviceHandle.HandleFunc("/", handleCreateService(pool)).Methods("POST")
+	serviceHandle.HandleFunc("/{serviceId}/", handleService)
+	nodeHandle := r.PathPrefix("/node").Subrouter()
+	nodeHandle.HandleFunc("/")
+	http.Handle("/", r)
+	server := &http.Server{
+		Handler:      r,
+		Addr:         strings.Join([]string{ListeningAddress, HTTPListeningPort}, ":"),
+		WriteTimeout: 15 * time.Second,
+		ReadTimeout:  15 * time.Second,
+	}
+	log.Printf("http server is listening at %s:%s", ListeningAddress, HTTPListeningPort)
+	log.Fatalln(server.ListenAndServe())
+	defer server.Close()
+}
+
 func main() {
 	var wg sync.WaitGroup
 	ch := make(chan *net.TCPConn, workerNum)
@@ -80,6 +148,7 @@ func main() {
 		Endpoints:   []string{"0.0.0.0:2379"},
 		DialTimeout: 5 * time.Second,
 	})
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -100,6 +169,8 @@ func main() {
 			wg.Done()
 		}()
 	}
+	wg.Add(1)
+	go startHttpServer(pool)
 
 	wg.Wait()
 }

@@ -19,11 +19,12 @@ type Slave struct {
 }
 
 type SlavePool struct {
-	lock       sync.Mutex
-	Slaves     []*Slave
-	counter    int
-	EtcdClient *clientv3.Client
-	Context    context.Context
+	lock         sync.Mutex
+	Slaves       []*Slave
+	ServiceQueue []*service.Service
+	counter      int
+	EtcdClient   *clientv3.Client
+	Context      context.Context
 }
 
 func NewSlavePool(context context.Context, cli *clientv3.Client) *SlavePool {
@@ -39,6 +40,12 @@ func (pool *SlavePool) ScheduleService(service *service.Service) {
 	pool.lock.Lock()
 	defer pool.lock.Unlock()
 
+	if len(pool.Slaves) == 0 {
+		log.Printf("no availabe slave. put the service %s into service queue\n", service.Id)
+		pool.ServiceQueue = append(pool.ServiceQueue, service)
+		return
+	}
+
 	// use a round-robin algo to select a slave from slave pool
 	curr := pool.Slaves[pool.counter]
 
@@ -46,6 +53,7 @@ func (pool *SlavePool) ScheduleService(service *service.Service) {
 	defer cancel()
 
 	kvs := service.KVs()
+	log.Printf("schedule service %s to slave %s\n", service.Id, curr.Id)
 	for _, kv := range kvs {
 		k, v := kv[0], kv[1]
 		_, err := pool.EtcdClient.Put(ctx, curr.GetKeyName(service, k), v)
@@ -81,10 +89,14 @@ func (pool *SlavePool) AddSlave(id string) {
 	}
 	pool.Slaves = append(pool.Slaves, slave)
 	log.Printf("%s is added to the pool.", id)
+	for len(pool.ServiceQueue) > 0 {
+		sv := pool.ServiceQueue[0]
+		pool.ServiceQueue = pool.ServiceQueue[1:]
+		go pool.ScheduleService(sv)
+	}
 }
 
 func (pool *SlavePool) RemoveSlave(slave *Slave) {
 	pool.lock.Lock()
 	defer pool.lock.Unlock()
-
 }
