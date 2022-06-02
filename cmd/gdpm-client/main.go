@@ -1,84 +1,99 @@
 package main
 
 import (
-	"flag"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
+
+	"github.com/gdpm/cmd/gdpm-client/flagset"
+	"github.com/gdpm/cmd/gdpm-client/util"
 )
 
 var MasterAddress string = "http://0.0.0.0"
 var MasterPortNumber string = "8989"
 
-func toURL(path string) string {
-	hostName := strings.Join([]string{MasterAddress, MasterPortNumber}, ":")
-	return strings.Join([]string{hostName, path}, "/")
-}
-
-type CreateNewServiceFlagSet struct {
-	fs          *flag.FlagSet
-	Command     string
-	InstanceNum int
-}
-
-func NewCreateServiceFlagSet() *CreateNewServiceFlagSet {
-	fs := &CreateNewServiceFlagSet{
-		fs: &flag.FlagSet{},
-	}
-	fs.fs.IntVar(&fs.InstanceNum, "replicas", 1, "Specify the number of replicas of the given command, default to 1.")
-	fs.fs.IntVar(&fs.InstanceNum, "r", 1, "Specify the number of replicas of the given command, default to 1.")
-	return fs
-}
-
 func CreateService(args []string) {
-	fs := NewCreateServiceFlagSet()
-	err := fs.fs.Parse(args)
+	fs := flagset.NewCreateServiceFlagSet()
+	err := fs.Fs.Parse(args)
 	if err != nil {
 		log.Fatal(err)
 	}
-	if fs.fs.NArg() == 0 {
+
+	if fs.Fs.NArg() == 0 {
 		log.Fatal("Please provide the executable.")
 	}
-	log.Println(fs.fs.NArg())
-	fs.Command = strings.Join(fs.fs.Args(), " ")
+
+	log.Println(fs.Fs.NArg())
+	fs.Command = strings.Join(fs.Fs.Args(), " ")
 	log.Printf("%s %v\n", fs.Command, fs.InstanceNum)
-	PostNewService(fs.Command, fs.InstanceNum)
+	PostService(fs)
 }
 
-func PostNewService(command string, instancenum int) {
+func PostService(flg flagset.BaseFlagSet) {
 	client := &http.Client{}
-	form := url.Values{}
-	form.Add("Command", command)
-	form.Add("InstanceNum", fmt.Sprintf("%v", instancenum))
-	log.Printf("[create] post request, command %s ,replicas %v \n", command, instancenum)
-	res, err := client.PostForm(toURL("service/"), form)
+	form := flg.Form()
+	path := flg.UrlPath()
+
+	log.Printf("[service] post request, url %s\n", path)
+
+	res, err := client.PostForm(path, form)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalln(err)
 	}
-	log.Printf("[create] post response status %v\n", res.StatusCode)
 	defer res.Body.Close()
+	log.Printf("[service] post response, status %v\n", res.StatusCode)
 	if res.StatusCode == http.StatusOK {
 		bodyBytes, err := io.ReadAll(res.Body)
 		if err != nil {
 			log.Fatal(err)
 		}
 		bodyStr := string(bodyBytes)
-		log.Printf("[create] post response, service id %s\n", bodyStr)
+		log.Printf("[service] post response, body %s\n", bodyStr)
 	} else {
 		log.Fatalln(res.StatusCode)
 	}
 }
 
 func UpdateNewService(args []string) {
+	fs := flagset.NewUpdateServiceFlagSet()
+	err := fs.Fs.Parse(args)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	if fs.Fs.NArg() == 0 {
+		log.Fatalln("missing instance id")
+	}
+	id := fs.Fs.Arg(0)
+	fs.ServiceId = id
+	log.Printf("[update] instance id %s, replica numbers %v", fs.ServiceId, fs.InstanceNum)
+	PostService(fs)
+}
 
+func DeleteService(args []string) {
+}
+
+type GetNodesResponse struct {
+	Ids        []string
+	ServiceNum []int
+	Status     []int
 }
 
 func ListNodes(args []string) {
-
+	client := &http.Client{}
+	res, err := client.Get(util.URL("node/"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	decoder := json.NewDecoder(res.Body)
+	nodeList := GetNodesResponse{}
+	decoder.Decode(&nodeList)
+	for i := 0; i < len(nodeList.Ids); i++ {
+		log.Println(nodeList.Ids[i])
+	}
 }
 
 func ListNodeServices(args []string) {
@@ -89,6 +104,7 @@ func main() {
 	if len(os.Args) < 2 {
 		log.Fatal("Please input subcommand.")
 	}
+	fmt.Printf("%v\n", os.Args)
 	switch os.Args[1] {
 	case "create":
 		CreateService(os.Args[2:])

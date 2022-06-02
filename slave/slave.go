@@ -2,6 +2,7 @@ package slave
 
 import (
 	"context"
+	"errors"
 	"log"
 	"math/rand"
 	"strings"
@@ -15,16 +16,17 @@ import (
 type Slave struct {
 	Id            string
 	LastHeartBeat time.Time
-	Services      []*service.Service
+	ServicesMap   map[string]*service.Service
 }
 
 type SlavePool struct {
-	lock         sync.Mutex
-	Slaves       []*Slave
-	ServiceQueue []*service.Service
-	counter      int
-	EtcdClient   *clientv3.Client
-	Context      context.Context
+	lock              sync.Mutex
+	Slaves            []*Slave
+	ServiceQueue      []*service.Service
+	ServiceToSlaveMap map[string]*Slave
+	counter           int
+	EtcdClient        *clientv3.Client
+	Context           context.Context
 }
 
 func NewSlavePool(context context.Context, cli *clientv3.Client) *SlavePool {
@@ -46,7 +48,7 @@ func (pool *SlavePool) ScheduleService(service *service.Service) {
 		return
 	}
 
-	// use a round-robin algo to select a slave from slave pool
+	// use round-robin method to select a slave from the slave pool
 	curr := pool.Slaves[pool.counter]
 
 	ctx, cancel := context.WithCancel(pool.Context)
@@ -63,6 +65,9 @@ func (pool *SlavePool) ScheduleService(service *service.Service) {
 			log.Printf("[PUT] %s Key: %s Value: %s", service.Id, curr.GetKeyName(service, k), v)
 		}
 	}
+
+	curr.ServicesMap[service.Id] = service
+	pool.ServiceToSlaveMap[service.Id] = curr
 
 	// move the counter to the next slave
 	pool.counter++
@@ -84,8 +89,8 @@ func (pool *SlavePool) AddSlave(id string) {
 	pool.lock.Lock()
 	defer pool.lock.Unlock()
 	slave := &Slave{
-		Id:       id,
-		Services: make([]*service.Service, 0),
+		Id:          id,
+		ServicesMap: make(map[string]*service.Service),
 	}
 	pool.Slaves = append(pool.Slaves, slave)
 	log.Printf("%s is added to the pool.", id)
@@ -99,4 +104,17 @@ func (pool *SlavePool) AddSlave(id string) {
 func (pool *SlavePool) RemoveSlave(slave *Slave) {
 	pool.lock.Lock()
 	defer pool.lock.Unlock()
+}
+
+func (pool *SlavePool) UpdateService(serviceId string, instanceNum int) error {
+	if slave, exist := pool.ServiceToSlaveMap[serviceId]; exist {
+		service, exist := slave.ServicesMap[serviceId]
+		if !exist {
+			return errors.New("service not found")
+		}
+		log.Printf("")
+	} else {
+		return errors.New("service not found")
+	}
+	return nil
 }

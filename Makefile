@@ -24,5 +24,7 @@ run-slave:
 clean-key:
 	etcdctl del "" --from-key=true
 
-clean:
-	rm -rf bin
+clean-binary:
+	rm -rf ./bin
+
+clean: clean-key clean-binary

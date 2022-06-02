@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net"
 	"net/http"
@@ -68,7 +69,6 @@ func handleConnection(ch <-chan *net.TCPConn, pool *slave.SlavePool) {
 		}
 		log.Printf("close connection from %s\n", conn.RemoteAddr())
 		pool.AddSlave(newid.String())
-		test(pool)
 	}
 }
 
@@ -96,7 +96,7 @@ func handleCreateService(pool *slave.SlavePool) func(res http.ResponseWriter, re
 			sv := service.NewService(command, instanceNum)
 			log.Printf("[New] %s is created. Command: %s\n", sv.Id, strings.Join(sv.Command, " "))
 
-			// pool.ScheduleService(sv)
+			pool.ScheduleService(sv)
 
 			res.WriteHeader(http.StatusOK)
 			res.Write([]byte(sv.Id))
@@ -106,24 +106,43 @@ func handleCreateService(pool *slave.SlavePool) func(res http.ResponseWriter, re
 	}
 }
 
-func handleService(res http.ResponseWriter, req *http.Request) {
-
+func handleService(pool *slave.SlavePool) func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
+		params := mux.Vars(req)
+		serviceId := params["serviceId"]
+	}
 }
 
 type GetNodesResponse struct {
+	Ids        []string
+	ServiceNum []int
+	Status     []int
 }
 
-func handleGetNodes(res http.ResponseWriter, req *http.Request) {
-
+func handleGetNodes(pool *slave.SlavePool) func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
+		encoder := json.NewEncoder(res)
+		jsonResponse := GetNodesResponse{
+			Ids:        make([]string, len(pool.Slaves)),
+			ServiceNum: make([]int, len(pool.Slaves)),
+			Status:     make([]int, len(pool.Slaves)),
+		}
+		for i := 0; i < len(pool.Slaves); i++ {
+			jsonResponse.Ids[i] = pool.Slaves[i].Id
+			jsonResponse.ServiceNum[i] = len(pool.Slaves[i].Services)
+			jsonResponse.Status[i] = 1
+		}
+		encoder.Encode(jsonResponse)
+	}
 }
 
 func startHttpServer(pool *slave.SlavePool) {
 	r := mux.NewRouter()
 	serviceHandle := r.PathPrefix("/service").Subrouter()
 	serviceHandle.HandleFunc("/", handleCreateService(pool)).Methods("POST")
-	serviceHandle.HandleFunc("/{serviceId}/", handleService)
+	serviceHandle.HandleFunc("/{serviceId}/", handleService(pool))
 	nodeHandle := r.PathPrefix("/node").Subrouter()
-	nodeHandle.HandleFunc("/")
+	nodeHandle.HandleFunc("/", handleGetNodes(pool))
 	http.Handle("/", r)
 	server := &http.Server{
 		Handler:      r,
