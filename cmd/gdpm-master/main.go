@@ -106,12 +106,12 @@ func handleCreateService(pool *slave.SlavePool) func(res http.ResponseWriter, re
 	}
 }
 
-func handleService(pool *slave.SlavePool) func(res http.ResponseWriter, req *http.Request) {
-	return func(res http.ResponseWriter, req *http.Request) {
-		params := mux.Vars(req)
-		serviceId := params["serviceId"]
-	}
-}
+// func handleService(pool *slave.SlavePool) func(res http.ResponseWriter, req *http.Request) {
+// 	return func(res http.ResponseWriter, req *http.Request) {
+// 		params := mux.Vars(req)
+// 		serviceId := params["serviceId"]
+// 	}
+// }
 
 type GetNodesResponse struct {
 	Ids        []string
@@ -129,7 +129,7 @@ func handleGetNodes(pool *slave.SlavePool) func(res http.ResponseWriter, req *ht
 		}
 		for i := 0; i < len(pool.Slaves); i++ {
 			jsonResponse.Ids[i] = pool.Slaves[i].Id
-			jsonResponse.ServiceNum[i] = len(pool.Slaves[i].Services)
+			jsonResponse.ServiceNum[i] = len(pool.Slaves[i].ServicesMap)
 			jsonResponse.Status[i] = 1
 		}
 		encoder.Encode(jsonResponse)
@@ -140,7 +140,7 @@ func startHttpServer(pool *slave.SlavePool) {
 	r := mux.NewRouter()
 	serviceHandle := r.PathPrefix("/service").Subrouter()
 	serviceHandle.HandleFunc("/", handleCreateService(pool)).Methods("POST")
-	serviceHandle.HandleFunc("/{serviceId}/", handleService(pool))
+	// serviceHandle.HandleFunc("/{serviceId}/", handleService(pool))
 	nodeHandle := r.PathPrefix("/node").Subrouter()
 	nodeHandle.HandleFunc("/", handleGetNodes(pool))
 	http.Handle("/", r)

@@ -3,6 +3,7 @@ package slave
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"math/rand"
 	"strings"
@@ -31,10 +32,12 @@ type SlavePool struct {
 
 func NewSlavePool(context context.Context, cli *clientv3.Client) *SlavePool {
 	return &SlavePool{
-		lock:       sync.Mutex{},
-		Slaves:     make([]*Slave, 0),
-		EtcdClient: cli,
-		Context:    context,
+		lock:              sync.Mutex{},
+		Slaves:            make([]*Slave, 0),
+		EtcdClient:        cli,
+		Context:           context,
+		ServiceToSlaveMap: make(map[string]*Slave),
+		ServiceQueue:      make([]*service.Service, 0),
 	}
 }
 
@@ -112,7 +115,13 @@ func (pool *SlavePool) UpdateService(serviceId string, instanceNum int) error {
 		if !exist {
 			return errors.New("service not found")
 		}
-		log.Printf("")
+		log.Printf("[update] service id %s, instance num %v\n", serviceId, instanceNum)
+		_, err := pool.EtcdClient.Put(pool.Context, slave.GetKeyName(service, "InstanceNum"), fmt.Sprint("%v", instanceNum))
+		if err == nil {
+			log.Printf("[update] failed, service id %s\n", serviceId)
+		} else {
+			log.Printf("[update] successed, service id %s\n", serviceId)
+		}
 	} else {
 		return errors.New("service not found")
 	}
