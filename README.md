@@ -38,3 +38,7 @@ gdpm-client works as a command-line tool for users to send requests to the maste
 2. Start your etcd cluster. Please see the [official guide](https://etcd.io/docs/v3.5/dev-guide/local_cluster/).
 
 3. Compile and install the executables. You must set the environment variables ```$GOPATH``` or ```$GOBIN``` before running the following commands. The command compiles the executables and move the executables to the folder ```$GOPATH/bin``` or ```$GOBIN``` if specified.
+
+    ```bash
+    make install
+    ```
