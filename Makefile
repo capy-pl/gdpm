@@ -5,14 +5,16 @@ CLIENT_NAME = gdpm-client
 MASTER_NAME = gdpm-master
 SLAVE_NAME = gdpm-slave
 
-all: client master slave
+.PHONY: clean clean-key clean-binary
 
-client:
-	go build -o ${BIN_PATH}/${CLIENT_NAME} ${SRC_PATH}/${CLIENT_NAME}/main.go
-master:
-	go build -o ${BIN_PATH}/${MASTER_NAME} ${SRC_PATH}/${MASTER_NAME}/main.go
-slave:
-	go build -o ${BIN_PATH}/${SLAVE_NAME} ${SRC_PATH}/${SLAVE_NAME}/main.go
+install: gdpm-client gdpm-master gdpm-slave
+
+gdpm-client:
+	go install github.com/gdpm/${SRC_PATH}/${CLIENT_NAME}
+gdpm-master:
+	go install github.com/gdpm/${SRC_PATH}/${MASTER_NAME}
+gdpm-slave:
+	go install github.com/gdpm/${SRC_PATH}/${SLAVE_NAME}
 
 run-client:
 	go run ${SRC_PATH}/${CLIENT_NAME}/main.go

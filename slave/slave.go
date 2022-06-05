@@ -116,8 +116,8 @@ func (pool *SlavePool) UpdateService(serviceId string, instanceNum int) error {
 			return errors.New("service not found")
 		}
 		log.Printf("[update] service id %s, instance num %v\n", serviceId, instanceNum)
-		_, err := pool.EtcdClient.Put(pool.Context, slave.GetKeyName(service, "InstanceNum"), fmt.Sprint("%v", instanceNum))
-		if err == nil {
+		_, err := pool.EtcdClient.Put(pool.Context, slave.GetKeyName(service, "InstanceNum"), fmt.Sprintf("%v", instanceNum))
+		if err != nil {
 			log.Printf("[update] failed, service id %s\n", serviceId)
 		} else {
 			log.Printf("[update] successed, service id %s\n", serviceId)
@@ -125,5 +125,25 @@ func (pool *SlavePool) UpdateService(serviceId string, instanceNum int) error {
 	} else {
 		return errors.New("service not found")
 	}
+	return nil
+}
+
+func (pool *SlavePool) DeleteService(serviceId string) error {
+	slave, exist := pool.ServiceToSlaveMap[serviceId]
+	if !exist {
+		return errors.New("service not exist")
+	}
+	service := slave.ServicesMap[serviceId]
+	keyprefix := strings.Join([]string{slave.Id, service.Id}, ":")
+	_, err := pool.EtcdClient.Delete(pool.Context, keyprefix, clientv3.WithPrefix())
+	if err != nil {
+		log.Printf("[delete] delete failed, service id = %s\n", service.Id)
+		return err
+	}
+
+	delete(slave.ServicesMap, service.Id)
+	delete(pool.ServiceToSlaveMap, service.Id)
+
+	log.Printf("[delete] delete success, service id = %s\n", service.Id)
 	return nil
 }

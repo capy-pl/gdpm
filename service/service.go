@@ -54,7 +54,7 @@ func NewService(command string, instanceNum int) *Service {
 	return &Service{
 		Id:          id,
 		Command:     commands,
-		InstanceNum: 1,
+		InstanceNum: instanceNum,
 		State:       Unscheduled,
 	}
 }

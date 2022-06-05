@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"os/exec"
@@ -72,6 +73,23 @@ func updateService(sv *service.Service) {
 		}
 		sv.Cmds.Queue = sv.Cmds.Queue[currInstanceNum-newInstanceNum:]
 	}
+}
+
+func deleteService(serviceId string) error {
+	if sv, exist := ServiceMap[serviceId]; exist {
+		sv.Cmds.Lock.Lock()
+		defer sv.Cmds.Lock.Unlock()
+		defer delete(ServiceMap, serviceId)
+
+		log.Printf("[delete] service %s exist, instance number = %v\n", sv.Id, len(sv.Cmds.Queue))
+		for _, cmd := range sv.Cmds.Queue {
+			cmd.Process.Kill()
+		}
+		log.Printf("[delete] service %s, terminate %v process(es)\n", sv.Id, len(sv.Cmds.Queue))
+	} else {
+		return fmt.Errorf("service %s not exist", serviceId)
+	}
+	return nil
 }
 
 func spawnCommand(sv *service.Service) {
@@ -151,6 +169,10 @@ func main() {
 				}
 			case mvccpb.DELETE:
 				log.Printf("DELETE %s %s\n", string(event.Kv.Key), string(event.Kv.Value))
+				kv := service.ParseServiceKV(string(event.Kv.Key), string(event.Kv.Value))
+				if _, exist := ServiceMap[kv.ServiceId]; exist {
+					deleteService(kv.ServiceId)
+				}
 			}
 		}
 	}

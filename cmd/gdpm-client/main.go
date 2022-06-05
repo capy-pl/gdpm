@@ -27,7 +27,6 @@ func CreateService(args []string) {
 		log.Fatal("Please provide the executable.")
 	}
 
-	log.Println(fs.Fs.NArg())
 	fs.Command = strings.Join(fs.Fs.Args(), " ")
 	log.Printf("%s %v\n", fs.Command, fs.InstanceNum)
 	PostService(fs)
@@ -74,6 +73,21 @@ func UpdateNewService(args []string) {
 }
 
 func DeleteService(args []string) {
+	if len(args) < 1 {
+		log.Fatalln("please provide a service id")
+	}
+	id := args[0]
+	client := &http.Client{}
+	req, err := http.NewRequest("DELETE", util.URL(fmt.Sprintf("service/%s/", id)), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("[delete] service id = %s\n", id)
+	res, err := client.Do(req)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	log.Printf("[delete] response status = %s\n", res.Status)
 }
 
 type GetNodesResponse struct {
@@ -110,6 +124,8 @@ func main() {
 		CreateService(os.Args[2:])
 	case "update":
 		UpdateNewService(os.Args[2:])
+	case "delete":
+		DeleteService(os.Args[2:])
 	case "get":
 		if len(os.Args) < 3 {
 			log.Fatal("Please input a valid target.")

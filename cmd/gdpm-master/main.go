@@ -106,12 +106,26 @@ func handleCreateService(pool *slave.SlavePool) func(res http.ResponseWriter, re
 	}
 }
 
-// func handleService(pool *slave.SlavePool) func(res http.ResponseWriter, req *http.Request) {
-// 	return func(res http.ResponseWriter, req *http.Request) {
-// 		params := mux.Vars(req)
-// 		serviceId := params["serviceId"]
-// 	}
-// }
+func handleUpdateService(pool *slave.SlavePool) func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
+		params := mux.Vars(req)
+		serviceId := params["serviceId"]
+		instanceNum, err := strconv.Atoi(req.FormValue("InstanceNum"))
+		if err != nil || instanceNum < 0 {
+			http.Error(res, "not a valid instanceNum", http.StatusBadRequest)
+			return
+		}
+		pool.UpdateService(serviceId, instanceNum)
+	}
+}
+
+func handleDeleteService(pool *slave.SlavePool) func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
+		params := mux.Vars(req)
+		serviceId := params["serviceId"]
+		pool.DeleteService(serviceId)
+	}
+}
 
 type GetNodesResponse struct {
 	Ids        []string
@@ -138,11 +152,17 @@ func handleGetNodes(pool *slave.SlavePool) func(res http.ResponseWriter, req *ht
 
 func startHttpServer(pool *slave.SlavePool) {
 	r := mux.NewRouter()
+
+	// api endpoints for services
 	serviceHandle := r.PathPrefix("/service").Subrouter()
 	serviceHandle.HandleFunc("/", handleCreateService(pool)).Methods("POST")
-	// serviceHandle.HandleFunc("/{serviceId}/", handleService(pool))
+	serviceHandle.HandleFunc("/{serviceId}/", handleUpdateService(pool)).Methods("POST")
+	serviceHandle.HandleFunc("/{serviceId}/", handleDeleteService(pool)).Methods("DELETE")
+
+	// api endpoints for nodes
 	nodeHandle := r.PathPrefix("/node").Subrouter()
 	nodeHandle.HandleFunc("/", handleGetNodes(pool))
+
 	http.Handle("/", r)
 	server := &http.Server{
 		Handler:      r,
