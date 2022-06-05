@@ -1,7 +1,7 @@
 # gdpm
 
 gdpm is a distributed process manager written in golang. The project contains
-three different software components (see the following list) and use [etcd](https://github.com/etcd-io/etcd) as the state manager.
+three different executables (see the following list) and use [etcd](https://github.com/etcd-io/etcd) as a state manager.
 
 1. gdpm-master
 2. gdpm-slave
@@ -13,4 +13,28 @@ gdpm-slave is the worker node that is responsible for running the actual job. Wh
 
 gdpm-client works as a command-line tool for users to send requests to the master node and view the node and job's status.
 
-## Installation
+## Environment Setup
+
+### System Requirements
+
+1. [Golang 1.18](https://go.dev/dl/)
+2. [etcd](https://etcd.io/docs/v3.5/install/)
+
+### Installation Guide
+
+1. Clone the repository in to your ```$GOPATH```. If you haven't set up your go development environment, please refer to this [guide](https://go.dev/doc/gopath_code).
+
+    ```bash
+    # create the folder for the repository
+    cd $GOPATH
+    mkdir src/github.com
+    cd src/github.com
+    ```
+
+    ```bash
+    git clone git@github.com:capy-pl/gdpm.git
+    ```
+
+2. Start your etcd cluster. Please see the [official guide](https://etcd.io/docs/v3.5/dev-guide/local_cluster/).
+
+3. 123
