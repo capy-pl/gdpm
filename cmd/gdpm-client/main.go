@@ -94,6 +94,7 @@ type GetNodesResponse struct {
 	Ids        []string
 	ServiceNum []int
 	Status     []int
+	Times      []string
 }
 
 func ListNodes(args []string) {
@@ -105,13 +106,20 @@ func ListNodes(args []string) {
 	decoder := json.NewDecoder(res.Body)
 	nodeList := GetNodesResponse{}
 	decoder.Decode(&nodeList)
+	fmt.Printf("%-36s %-15s %-19s\n", "node id", "service number", "start time")
 	for i := 0; i < len(nodeList.Ids); i++ {
-		log.Println(nodeList.Ids[i])
+		fmt.Printf("%-36s %-15d %-19s\n", nodeList.Ids[i], nodeList.ServiceNum[i], nodeList.Times[i])
 	}
 }
 
-func ListNodeServices(args []string) {
+type ListNodeServicesResponse struct {
+	Ids     []string
+	Command []string
+	Number  []int
+}
 
+func ListNodeServices(args []string) {
+	// client := &
 }
 
 func main() {
