@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+    "github.com/rs/cors"
 	"github.com/gdpm/service"
 	"github.com/gdpm/slave"
 	"github.com/gorilla/mux"
@@ -104,9 +105,9 @@ func startHttpServer(pool *slave.SlavePool) {
 	nodeHandle := r.PathPrefix("/node").Subrouter()
 	nodeHandle.HandleFunc("/", handleGetNodes(pool))
 
-	http.Handle("/", r)
+    handler := cors.Default().Handler(r)
 	server := &http.Server{
-		Handler:      r,
+		Handler:      handler,
 		Addr:         strings.Join([]string{ListeningAddress, HTTPListeningPort}, ":"),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
