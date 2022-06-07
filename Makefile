@@ -19,7 +19,7 @@ gdpm-slave:
 run-client:
 	go run ${SRC_PATH}/${CLIENT_NAME}/main.go
 run-master:
-	go run ${SRC_PATH}/${MASTER_NAME}/main.go
+	go run ${SRC_PATH}/${MASTER_NAME}/*
 run-slave:
 	go run ${SRC_PATH}/${SLAVE_NAME}/main.go
 

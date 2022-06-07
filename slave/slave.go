@@ -17,6 +17,7 @@ import (
 type Slave struct {
 	Id            string
 	LastHeartBeat time.Time
+	StartTime     time.Time
 	ServicesMap   map[string]*service.Service
 }
 
@@ -94,6 +95,7 @@ func (pool *SlavePool) AddSlave(id string) {
 	slave := &Slave{
 		Id:          id,
 		ServicesMap: make(map[string]*service.Service),
+		StartTime:   time.Now(),
 	}
 	pool.Slaves = append(pool.Slaves, slave)
 	log.Printf("%s is added to the pool.", id)

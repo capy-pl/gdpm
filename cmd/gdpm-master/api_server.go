@@ -73,6 +73,7 @@ type GetNodesResponse struct {
 	Ids        []string
 	ServiceNum []int
 	Status     []int
+	Times      []string
 }
 
 func handleGetNodes(pool *slave.SlavePool) func(res http.ResponseWriter, req *http.Request) {
@@ -82,11 +83,43 @@ func handleGetNodes(pool *slave.SlavePool) func(res http.ResponseWriter, req *ht
 			Ids:        make([]string, len(pool.Slaves)),
 			ServiceNum: make([]int, len(pool.Slaves)),
 			Status:     make([]int, len(pool.Slaves)),
+			Times:      make([]string, len(pool.Slaves)),
 		}
 		for i := 0; i < len(pool.Slaves); i++ {
 			jsonResponse.Ids[i] = pool.Slaves[i].Id
 			jsonResponse.ServiceNum[i] = len(pool.Slaves[i].ServicesMap)
+			jsonResponse.Times[i] = pool.Slaves[i].StartTime.Format(time.RFC822)
 			jsonResponse.Status[i] = 1
+		}
+		encoder.Encode(jsonResponse)
+	}
+}
+
+type GetNodeResponse struct {
+	Ids     []string
+	Command []string
+	Number  []int
+}
+
+func handleGetNode(pool *slave.SlavePool) func(res http.ResponseWriter, req *http.Request) {
+	return func(res http.ResponseWriter, req *http.Request) {
+		params := mux.Vars(req)
+		nodeId := params["nodeId"]
+		encoder := json.NewEncoder(res)
+		var slave *slave.Slave
+		for _, sv := range pool.Slaves {
+			if sv.Id == nodeId {
+				slave = sv
+			}
+		}
+		if slave == nil {
+			http.NotFound(res, req)
+			return
+		}
+		jsonResponse := GetNodeResponse{
+			Ids:     make([]string, len(slave.ServicesMap)),
+			Command: make([]string, len(slave.ServicesMap)),
+			Number:  make([]int, len(slave.ServicesMap)),
 		}
 		encoder.Encode(jsonResponse)
 	}
@@ -104,6 +137,7 @@ func startHttpServer(pool *slave.SlavePool) {
 	// api endpoints for nodes
 	nodeHandle := r.PathPrefix("/node").Subrouter()
 	nodeHandle.HandleFunc("/", handleGetNodes(pool))
+	nodeHandle.HandleFunc("/{nodeId}/", handleGetNode(pool))
 
     handler := cors.Default().Handler(r)
 	server := &http.Server{
@@ -112,7 +146,8 @@ func startHttpServer(pool *slave.SlavePool) {
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
+	defer server.Close()
+
 	log.Printf("http server is listening at %s:%s", ListeningAddress, HTTPListeningPort)
 	log.Fatalln(server.ListenAndServe())
-	defer server.Close()
 }
