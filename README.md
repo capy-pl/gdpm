@@ -42,3 +42,46 @@ gdpm-client works as a command-line tool for users to send requests to the maste
     ```bash
     make install
     ```
+
+### API Example
+
+1. List all nodes. ```[http GET]http://localhost:8989/node/```
+
+    ```json
+        # response example
+        {
+        "Ids": [
+            "5764e70d-a8da-4c75-aa44-09dc2dbc188b",
+            "da409d07-f630-4b1d-9844-f8122f9c08d2"
+        ],
+        "ServiceNum": [
+            0,
+            0
+        ],
+        "Status": [
+            1,
+            1
+        ],
+        "Times": [
+            "07 Jun 22 22:03 CST",
+            "07 Jun 22 22:22 CST"
+        ]
+    } 
+    ```
+
+2. List services on a node. ```[http Get]http://localhost:8989/node/:nodeId/```
+
+    ```json
+    # response example
+    {
+        "Command": [
+            "python /Users/phil/GoProjects/src/github.com/gdpm/test.py"
+        ],
+        "Ids": [
+            "a11b8ada-1776-490f-a8a4-46c688ffb262"
+        ],
+        "Number": [
+            4
+        ]
+    }
+    ```
