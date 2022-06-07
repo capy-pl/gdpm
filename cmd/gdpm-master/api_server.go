@@ -112,15 +112,26 @@ func handleGetNode(pool *slave.SlavePool) func(res http.ResponseWriter, req *htt
 				slave = sv
 			}
 		}
+
 		if slave == nil {
 			http.NotFound(res, req)
 			return
 		}
+
 		jsonResponse := GetNodeResponse{
-			Ids:     make([]string, len(slave.ServicesMap)),
-			Command: make([]string, len(slave.ServicesMap)),
-			Number:  make([]int, len(slave.ServicesMap)),
+			Ids:     make([]string, 0),
+			Command: make([]string, 0),
+			Number:  make([]int, 0),
 		}
+
+		for _, sv := range slave.ServicesMap {
+			if sv != nil && len(sv.Command) > 0 {
+				jsonResponse.Ids = append(jsonResponse.Ids, sv.Id)
+				jsonResponse.Command = append(jsonResponse.Command, strings.Join(sv.Command, " "))
+				jsonResponse.Number = append(jsonResponse.Number, sv.InstanceNum)
+			}
+		}
+
 		encoder.Encode(jsonResponse)
 	}
 }
