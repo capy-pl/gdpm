@@ -43,13 +43,13 @@ gdpm-client works as a command-line tool for users to send requests to the maste
     make install
     ```
 
-### API Example
+### API Usage
 
 1. List all nodes. ```[http GET]http://localhost:8989/node/```
 
     ```json
-        # response example
-        {
+    // response example
+    {
         "Ids": [
             "5764e70d-a8da-4c75-aa44-09dc2dbc188b",
             "da409d07-f630-4b1d-9844-f8122f9c08d2"
@@ -69,10 +69,12 @@ gdpm-client works as a command-line tool for users to send requests to the maste
     } 
     ```
 
-2. List services on a node. ```[http Get]http://localhost:8989/node/:nodeId/```
+2. List services on a node.
+
+    ```[http Get]http://localhost:8989/node/:nodeId/```
 
     ```json
-    # response example
+    // response example
     {
         "Command": [
             "python /Users/phil/GoProjects/src/github.com/gdpm/test.py"
@@ -85,3 +87,35 @@ gdpm-client works as a command-line tool for users to send requests to the maste
         ]
     }
     ```
+
+3. Create a service.
+
+    ```[http POST]http://localhost:8989/service/```
+
+    ```json
+    // request example
+    {
+        "Command": "python test.py", // if you intend to execute a script, provide an absolute path
+        "InstanceNum":  5, // number of process you want to spawn
+    }
+    ```
+
+    ```json
+    // response example
+    a11b8ada-1776-490f-a8a4-46c688ffb262
+    ```
+
+4. Update a service.
+
+    ```[http POST]http://localhost:8989/service/:serviceId/```
+
+    ```json
+    // request example
+    {
+        "InstanceNum": 5, // the number of instance of the service
+    }
+    ```
+
+5. Delete a service.
+
+    ```[http DELETE]http://localhost:8989/service/:serviceId/```
