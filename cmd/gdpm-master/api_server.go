@@ -40,8 +40,13 @@ func handleCreateService(pool *slave.SlavePool) func(res http.ResponseWriter, re
 
 			pool.ScheduleService(sv)
 
-			res.WriteHeader(http.StatusOK)
-			res.Write([]byte(sv.Id))
+			encoder := json.NewEncoder(res)
+			jsonResponse := defaultResponse{
+				success: true,
+				msg: "create service success",
+			}
+			
+			encoder.Encode(jsonResponse)
 		} else {
 			http.Error(res, "method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -74,6 +79,11 @@ type GetNodesResponse struct {
 	ServiceNum []int
 	Status     []int
 	Times      []string
+}
+
+type defaultResponse struct {
+	success bool
+	msg string
 }
 
 func handleGetNodes(pool *slave.SlavePool) func(res http.ResponseWriter, req *http.Request) {
