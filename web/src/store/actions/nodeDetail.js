@@ -71,11 +71,11 @@ export const createWork = (command,numOfWork) => {
     })
   }
 }
-export const updateWork = (serviceId,command,numOfWork) => {
+export const updateService = (serviceId,numOfWork) => {
+console.log('serviceId,numOfWork :', serviceId,numOfWork);
   return function (dispatch, getState) {
-    const userId = getState().auth?.profile?.id
-    return ajax(`/${serviceId}/`, "post", { data: { command: command, numOfWork: numOfWork } }).then(res => {
-      return ajax(`/node/${nodeId}/`, "get", { params: { } })
+    return ajax(`/service/${serviceId}/`, "post", { data: { serviceId: serviceId, InstanceNum: numOfWork.toString() } }).then(res => {
+      return ajax(`/${nodeId}/`, "get", { params: { } })
     }).then(res => {
       dispatch(set_course_detail(res.data));
       dispatch(set_done());
@@ -83,11 +83,11 @@ export const updateWork = (serviceId,command,numOfWork) => {
     })
   }
 }
-export const deleteWork = (serviceId,command,numOfWork) => {
+export const deleteService = (serviceId) => {
   return function (dispatch, getState) {
     const userId = getState().auth?.profile?.id
-    return ajax(`/${serviceId}/`, "delete", { data: { command: command, numOfWork: numOfWork } }).then(res => {
-      return ajax(`/node/${nodeId}/`, "get", { params: { } })
+    return ajax(`/service/${serviceId}/`, "delete", { data: { serviceId: serviceId } }).then(res => {
+      return ajax(`/${nodeId}/`, "get", { params: { } })
     }).then(res => {
       dispatch(set_course_detail(res.data));
       dispatch(set_done());

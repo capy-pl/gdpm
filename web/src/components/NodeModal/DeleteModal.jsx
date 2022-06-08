@@ -10,7 +10,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import { createWork } from "../../store/actions/nodeDetail";
 import { useDispatch, useSelector } from "react-redux";
 import CircularProgress from '@mui/material/CircularProgress';
-export default function FormDialog({open,setOpen}) {
+export default function FormDialog({service,open,setOpen}) {
 //   const [open, setOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   // const [command, setCommand] = React.useState("");

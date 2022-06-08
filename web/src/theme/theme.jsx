@@ -29,6 +29,10 @@ const palette= {
     50:"#F0F0F0",
     400: "#B9B9B9"
   },
+  yellow:{
+    50:"yellow",
+    400:""
+  }
 };
 
 export default createTheme({

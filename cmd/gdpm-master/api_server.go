@@ -56,8 +56,11 @@ func handleCreateService(pool *slave.SlavePool) func(res http.ResponseWriter, re
 func handleUpdateService(pool *slave.SlavePool) func(res http.ResponseWriter, req *http.Request) {
 	return func(res http.ResponseWriter, req *http.Request) {
 		params := mux.Vars(req)
+		req.ParseForm()
 		serviceId := params["serviceId"]
 		instanceNum, err := strconv.Atoi(req.FormValue("InstanceNum"))
+		log.Printf("req.FormValue(InstanceNum) is %s,",req.FormValue("InstanceNum"))
+		log.Printf("serviceId is %s,instanceNum is %d",serviceId,instanceNum)
 		if err != nil || instanceNum < 0 {
 			http.Error(res, "not a valid instanceNum", http.StatusBadRequest)
 			return

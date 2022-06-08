@@ -7,6 +7,8 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import BoltTwoToneIcon from '@mui/icons-material/BoltTwoTone';
 import CheckCircleTwoToneIcon from '@mui/icons-material/CheckCircleTwoTone';
 import ClearTwoToneIcon from '@mui/icons-material/ClearTwoTone';
+import AdjustIcon from '@mui/icons-material/Adjust';
+
 const CardBox = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.default,
   borderRadius: theme.spacing(2),
@@ -38,7 +40,8 @@ function Card({ Id, ServuceNum, Status, Times}) {
           <Box sx={{ display: "flex", alignItems: "center", flexWrap: "nowrap" }}>
           {Status===1?
           <>
-            <img src={Star} style={{ height: "1rem" }} />
+            {/* <img src={Star} style={{ height: "1rem" }} /> */}
+            <AdjustIcon color="action" sx={{color: "green"}}/>
           </>
             // <CheckCircleTwoToneIcon />
             :

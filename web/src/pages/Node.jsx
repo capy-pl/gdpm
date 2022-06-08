@@ -6,7 +6,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Star from "../assets/star.svg"
 import ClearTwoToneIcon from '@mui/icons-material/ClearTwoTone';
-import CommandCard from "../components/CommandCard/Main";
+import CommandCard from "../components/ServiceCard/Main";
 import DeleteIcon from '@mui/icons-material/Delete';
 import Divider from '@mui/material/Divider';
 import InfoTwoToneIcon from '@mui/icons-material/InfoTwoTone';
@@ -17,7 +17,8 @@ import AddModal from "../components/NodeModal/AddModal";
 import UpdateModal from "../components/NodeModal/UpdateModal";
 import DeleteModal from "../components/NodeModal/DeleteModal";
 import RefreshTwoToneIcon from '@mui/icons-material/RefreshTwoTone';
-
+import AdjustIcon from '@mui/icons-material/Adjust';
+import CachedIcon from '@mui/icons-material/Cached';
 const ProjextBox = styled(Box)(({ theme }) => ({
   height: "100vh",
   display: "flex",
@@ -82,10 +83,10 @@ function Node({Id,Status,ServiceNum}) {
   }, [params,refresh]);
 
 
-  const ServiceCards = courseDetail.services.map((command)=>{
+  const ServiceCards = courseDetail.services.map((service)=>{
     return(
       <Grid item xs={12}>
-        <CommandCard {...command} />
+        <CommandCard {...service} />
       </Grid>
     )
   })
@@ -115,7 +116,7 @@ function Node({Id,Status,ServiceNum}) {
 
   return (
     <>
-    <Container maxWidth="md" sx={{ padding: "15px" }}>
+    <Container maxWidth="md" sx={{ padding: "10px" }}>
       {/* <CourseDetailPannelBox> */}
         <ProjextBox>
             <Box sx={{ flexGrow: 1 }}>
@@ -126,16 +127,17 @@ function Node({Id,Status,ServiceNum}) {
                 <Grid item xs={12}>
                   <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <Box sx={{ display: "flex", alignItems: "center", flexWrap: "nowrap" }}>
-                      {courseDetail.Status===1?
+                      {courseDetail?
                       <>
-                        <img src={Star} style={{ height: "1rem" }} />
+                        {/* <img src={Star} style={{ height: "1rem" }} /> */}
+                        <AdjustIcon color="action" sx={{color: "green"}}/>
                       </>
                         :
                         <ClearTwoToneIcon />
                       } 
                     </Box>
                     <Box>
-                        <Typography variant="h6" sx={{ fontWeight: "bold",textAlign: "center", whiteSpace: "nowrap" }}>{courseDetail.Status===1?"在線":"離線"}</Typography>
+                        <Typography variant="h6" sx={{ fontWeight: "bold",textAlign: "center", whiteSpace: "nowrap" }}>{courseDetail?"在線":"離線"}</Typography>
                     </Box>
                     <Box>
                       <Typography variant="h6" sx={{ fontWeight: "bold", fontSize: "1.5rem",textAlign: "center" }}>{nodeId}</Typography>
@@ -166,7 +168,7 @@ function Node({Id,Status,ServiceNum}) {
                     <Grid item xs={4}>
                       <Box textAlign='center'>
                         <Button onClick={()=>setRefresh(prev=>!prev)} variant="outlined" sx={{color:"blue"}} startIcon={<RefreshTwoToneIcon />}>
-                          刷新此NODE資料
+                          刷新此NODE的service
                         </Button>
                       </Box>
                     </Grid>
