@@ -5,7 +5,7 @@ three different executables (see the following list) and use [etcd](https://gith
 
 ## Introduction
 
-gdpm has three software components (see the following list), and use etcd as a neutral state manager to synchronize data between different software components. We will give a brief introduction on each component in the following sections.
+gdpm has three software components (see the following list) and uses etcd as a neutral state manager to synchronize data between different software components. We will give a brief introduction to each component in the following sections.
 
 1. gdpm-master
 2. gdpm-slave
@@ -13,11 +13,11 @@ gdpm has three software components (see the following list), and use etcd as a n
 
 ### gdpm-master
 
-gdpm-master is the master node that includes a TCP server, a HTTP server and a scheduler. The TCP server listens for the registration request from gdpm-slaves. When a gdpm-slave joins the cluster, it must register its existence with the master, so the master can schedule services it. The HTTP server listens for a http requst (ex. spawn a new service or update current services) from the client (gdpm-client or web interface). If a service's status is changed by the request, the master will update the key-value pair in etcd accordingly. The scheduler selects a slave from registered slave pool, and schedules the service using round-robin method. If there is no available slave, the scheduler puts the service into a queue for later dispatching.
+gdpm-master is the master node that includes a TCP server, an HTTP server, and a scheduler. The TCP server listens for the registration request from gdpm-slaves. When a gdpm-slave joins the cluster, it registers its existence with the master so that the master can assign services to it. The HTTP server listens for an http request (ex. spawn a new service or update current services) from the client (gdpm-client or web interface). If the request changes a service's status, the master will update the key-value pair in etcd accordingly. The scheduler selects a slave from the registered slave pool and schedules the service using the round-robin method. If there is no available slave, the scheduler puts the service into a queue for later dispatching.
 
 ### gdpm-slave
 
-gdpm-slave is the worker node that actualluy runs a service. When gdpm-slave is online, it registers its existence with the gdpm-master and receives a unique id from the master. Then, gdpm-slave registers a listener with the etcd and listens for key changes which contain its id. When the gdpm-master scheduler schedules a job, it adds a specific format of key-value pair to etcd, so the gdpm-slave can read the key change and work accordingly.
+gdpm-slave is the worker node that actually runs a service. When gdpm-slave is online, it registers its existence with the gdpm-master and receives a unique id from the master. Then, gdpm-slave registers a listener with the etcd and listens for key changes which contain its id. When the gdpm-master scheduler schedules a job, it adds a specific key-value pair format to etcd, so the gdpm-slave can read the key change and work accordingly.
 
 ### gdpm-client
 
