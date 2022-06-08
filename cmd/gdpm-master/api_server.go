@@ -65,7 +65,11 @@ func handleUpdateService(pool *slave.SlavePool) func(res http.ResponseWriter, re
 			http.Error(res, "not a valid instanceNum", http.StatusBadRequest)
 			return
 		}
-		pool.UpdateService(serviceId, instanceNum)
+		err = pool.UpdateService(serviceId, instanceNum)
+		if err != nil {
+			http.Error(res, "error", http.StatusBadRequest)
+			return
+		}
 	}
 }
 
@@ -73,7 +77,11 @@ func handleDeleteService(pool *slave.SlavePool) func(res http.ResponseWriter, re
 	return func(res http.ResponseWriter, req *http.Request) {
 		params := mux.Vars(req)
 		serviceId := params["serviceId"]
-		pool.DeleteService(serviceId)
+		err := pool.DeleteService(serviceId)
+		if err != nil {
+			http.Error(res, "error", http.StatusBadRequest)
+			return
+		}
 	}
 }
 
