@@ -47,7 +47,7 @@ gdpm-client works as a command-line tool for users to send requests to the maste
 
 1. List all nodes. ```[http GET]http://localhost:8989/node/```
 
-    ```json
+    ```jsonc
     // response example
     {
         "Ids": [
@@ -73,7 +73,7 @@ gdpm-client works as a command-line tool for users to send requests to the maste
 
     ```[http Get]http://localhost:8989/node/:nodeId/```
 
-    ```json
+    ```jsonc
     // response example
     {
         "Command": [
@@ -92,7 +92,7 @@ gdpm-client works as a command-line tool for users to send requests to the maste
 
     ```[http POST]http://localhost:8989/service/```
 
-    ```json
+    ```jsonc
     // request example
     {
         "Command": "python test.py", // if you intend to execute a script, provide an absolute path
@@ -100,7 +100,7 @@ gdpm-client works as a command-line tool for users to send requests to the maste
     }
     ```
 
-    ```json
+    ```jsonc
     // response example
     a11b8ada-1776-490f-a8a4-46c688ffb262
     ```
@@ -109,7 +109,7 @@ gdpm-client works as a command-line tool for users to send requests to the maste
 
     ```[http POST]http://localhost:8989/service/:serviceId/```
 
-    ```json
+    ```jsonc
     // request example
     {
         "InstanceNum": 5, // the number of instance of the service
