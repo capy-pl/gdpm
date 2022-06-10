@@ -83,7 +83,7 @@ function Node({Id,Status,ServiceNum}) {
   }, [params,refresh]);
 
 
-  const ServiceCards = courseDetail.services.map((service)=>{
+  const ServiceCards = courseDetail?.services.map((service)=>{
     return(
       <Grid item xs={12}>
         <CommandCard {...service} />
