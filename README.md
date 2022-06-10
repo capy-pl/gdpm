@@ -32,6 +32,8 @@ gdpm-client works as a command-line tool for users to send requests to the maste
 
 ### Installation Guide
 
+#### BACK END
+
 1. Clone the repository in to your ```$GOPATH```. If you haven't set up your go development environment, please refer to this [guide](https://go.dev/doc/gopath_code).
 
     ```bash
@@ -52,6 +54,30 @@ gdpm-client works as a command-line tool for users to send requests to the maste
     ```bash
     make install
     ```
+
+#### FRONT END
+
+1. make sure you have installed node.js and npm on you computer
+    (https://nodejs.org/en/download/)
+
+2. go to /web directory
+
+    ```bash
+    cd web
+    ```
+
+3. install dependencies
+
+    ```bash
+    npm install
+    ```
+
+4. launch development server
+
+    ```bash
+    npm run dev
+    ```
+5. go to http://localhost:3000
 
 ### Command Line Usage
 

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+    "github.com/rs/cors"
 	"github.com/gdpm/service"
 	"github.com/gdpm/slave"
 	"github.com/gorilla/mux"
@@ -39,8 +40,13 @@ func handleCreateService(pool *slave.SlavePool) func(res http.ResponseWriter, re
 
 			pool.ScheduleService(sv)
 
-			res.WriteHeader(http.StatusOK)
-			res.Write([]byte(sv.Id))
+			encoder := json.NewEncoder(res)
+			jsonResponse := defaultResponse{
+				success: true,
+				msg: "create service success",					
+			}
+			
+			encoder.Encode(jsonResponse)
 		} else {
 			http.Error(res, "method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -49,9 +55,14 @@ func handleCreateService(pool *slave.SlavePool) func(res http.ResponseWriter, re
 
 func handleUpdateService(pool *slave.SlavePool) func(res http.ResponseWriter, req *http.Request) {
 	return func(res http.ResponseWriter, req *http.Request) {
+		log.Println("Update service request is received.")
+		req.ParseForm()
+		instanceNumStr := req.PostFormValue("InstanceNum")
+		log.Printf("instanceNumStr is %s",instanceNumStr)
+		instanceNum, err := strconv.Atoi(instanceNumStr)
 		params := mux.Vars(req)
 		serviceId := params["serviceId"]
-		instanceNum, err := strconv.Atoi(req.FormValue("InstanceNum"))
+		log.Printf("serviceId is %s,instanceNum is %d",serviceId,instanceNum)
 		if err != nil || instanceNum < 0 {
 			http.Error(res, "not a valid instanceNum", http.StatusBadRequest)
 			return
@@ -81,6 +92,11 @@ type GetNodesResponse struct {
 	ServiceNum []int
 	Status     []int
 	Times      []string
+}
+
+type defaultResponse struct {
+	success bool
+	msg string
 }
 
 func handleGetNodes(pool *slave.SlavePool) func(res http.ResponseWriter, req *http.Request) {
@@ -157,10 +173,9 @@ func startHttpServer(pool *slave.SlavePool) {
 	nodeHandle.HandleFunc("/", handleGetNodes(pool))
 	nodeHandle.HandleFunc("/{nodeId}/", handleGetNode(pool))
 
-	http.Handle("/", r)
-
+    handler := cors.Default().Handler(r)
 	server := &http.Server{
-		Handler:      r,
+		Handler:      handler,
 		Addr:         strings.Join([]string{ListeningAddress, HTTPListeningPort}, ":"),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
