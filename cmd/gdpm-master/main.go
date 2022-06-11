@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gdpm/service"
 	"github.com/gdpm/slave"
 	"github.com/google/uuid"
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -39,12 +38,6 @@ func listenForSlave(ch chan *net.TCPConn) {
 		}
 		ch <- conn
 	}
-}
-
-func test(pool *slave.SlavePool) {
-	time.Sleep(100 * time.Millisecond)
-	sv := service.NewService("python test.py", 1)
-	pool.ScheduleService(sv)
 }
 
 func handleConnection(ch <-chan *net.TCPConn, pool *slave.SlavePool) {

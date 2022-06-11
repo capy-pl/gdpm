@@ -5,7 +5,7 @@ three different executables (see the following list) and use [etcd](https://gith
 
 ## Introduction
 
-gdpm has three software components (see the following list) and uses etcd as a neutral state manager to synchronize data between different software components. We will give a brief introduction to each component in the following sections.
+gdpm has three software components (see the following list) and uses etcd to synchronize services states between different software components. We will give a brief introduction to each component in the following sections.
 
 1. gdpm-master
 2. gdpm-slave

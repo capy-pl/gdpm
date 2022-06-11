@@ -88,11 +88,6 @@ type GetNodesResponse struct {
 	Times      []string
 }
 
-type defaultResponse struct {
-	success bool
-	msg     string
-}
-
 func handleGetNodes(pool *slave.SlavePool) func(res http.ResponseWriter, req *http.Request) {
 	return func(res http.ResponseWriter, req *http.Request) {
 		encoder := json.NewEncoder(res)
