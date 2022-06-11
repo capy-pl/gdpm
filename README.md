@@ -132,7 +132,17 @@ gdpm-client works as a command-line tool for users to send requests to the maste
     gdpm-client get node <id>
     ```
 
-7. Besides CLI, you can also use the Web GUI to manage node and services.
+7. You can also update or delete a service using following commands.
+
+    ```bash
+    # scale up/down the service's instance number
+    gdpm-client update -r <instance number> <service id>
+
+    # delete the service
+    gdpm-client delete <service id>
+    ```
+
+Besides CLI, you can also use the Web GUI to manage node and services.
 
 ## API Usage
 

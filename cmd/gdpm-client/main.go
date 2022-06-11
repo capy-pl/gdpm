@@ -119,14 +119,24 @@ type ListNodeServicesResponse struct {
 }
 
 func ListNodeServices(args []string) {
-	// client := &
+	client := &http.Client{}
+	res, err := client.Get(util.URL(fmt.Sprintf("node/%s/", args[0])))
+	if err != nil {
+		log.Fatal(err)
+	}
+	decoder := json.NewDecoder(res.Body)
+	svList := &ListNodeServicesResponse{}
+	decoder.Decode(&svList)
+	fmt.Printf("%-36s %-10s %s\n", "service id", "number", "command")
+	for i := 0; i < len(svList.Ids); i++ {
+		fmt.Printf("%-36s %-10v %s\n", svList.Ids[i], svList.Number[i], svList.Command[i])
+	}
 }
 
 func main() {
 	if len(os.Args) < 2 {
 		log.Fatal("Please input subcommand.")
 	}
-	fmt.Printf("%v\n", os.Args)
 	switch os.Args[1] {
 	case "create":
 		CreateService(os.Args[2:])
@@ -141,8 +151,8 @@ func main() {
 		switch os.Args[2] {
 		case "nodes":
 			ListNodes(os.Args[2:])
-		case "services":
-			ListNodeServices(os.Args[2:])
+		case "node":
+			ListNodeServices(os.Args[3:])
 		default:
 			log.Fatal("Not a valid target.")
 		}
