@@ -31,7 +31,6 @@ export const getDetail = (id) => {
     dispatch(clear_course_detail());
     dispatch(set_loading());
     return ajax(`/node/${id}/`, "get", { params: { } }).then(res => {
-    // console.log('res :', res);
       let services = res.data.Ids.map((value,index)=>{
         return (
           {
@@ -41,7 +40,6 @@ export const getDetail = (id) => {
           }
           )
         })
-      console.log('services :', services);
       dispatch(set_course_detail({services,id}));
       dispatch(set_done());
       return res.data;
@@ -62,7 +60,6 @@ export const createWork = (command,numOfWork) => {
       }
     }
     return axios.post(url, params, config).then(res => {
-      console.log('res :', res);
       return ajax(`/node/${nodeId}/`, "get", { params: { } })
     }).then(res => {
       dispatch(set_course_detail(res.data));
@@ -71,8 +68,8 @@ export const createWork = (command,numOfWork) => {
     })
   }
 }
+
 export const updateService = (serviceId,numOfWork) => {
-console.log('serviceId,numOfWork :', serviceId,numOfWork);
   return function (dispatch, getState) {
     return ajax(`/service/${serviceId}/`, "post", { data: { serviceId: serviceId, InstanceNum: numOfWork.toString() } }).then(res => {
       return ajax(`/${nodeId}/`, "get", { params: { } })

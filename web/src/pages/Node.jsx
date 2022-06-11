@@ -76,7 +76,6 @@ function Node({Id,Status,ServiceNum}) {
   useEffect(() => {
     setLoading(true);
     dispatch(getDetail(nodeId)).catch(err => {
-      console.log(err);
     }).then(() => {
       setLoading(false);
     });
@@ -85,7 +84,7 @@ function Node({Id,Status,ServiceNum}) {
 
   const ServiceCards = courseDetail?.services.map((service)=>{
     return(
-      <Grid item xs={12}>
+      <Grid key={service.Id} item xs={12}>
         <CommandCard {...service} />
       </Grid>
     )

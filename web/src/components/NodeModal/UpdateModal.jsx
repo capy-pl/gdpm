@@ -11,7 +11,6 @@ import { updateService } from "../../store/actions/nodeDetail";
 import { useDispatch, useSelector } from "react-redux";
 import CircularProgress from '@mui/material/CircularProgress';
 export default function FormDialog({service,open,setOpen}) {
-console.log('service :', service);
 //   const [open, setOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   // const [command, setCommand] = React.useState("");

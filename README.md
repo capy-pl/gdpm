@@ -29,10 +29,9 @@ gdpm-client works as a command-line tool for users to send requests to the maste
 
 1. [Golang 1.18](https://go.dev/dl/)
 2. [etcd](https://etcd.io/docs/v3.5/install/)
+3. [node](https://nodejs.org/en/download/) is required if you need the web GUI.
 
 ### Installation Guide
-
-#### BACK END
 
 1. Clone the repository in to your ```$GOPATH```. If you haven't set up your go development environment, please refer to this [guide](https://go.dev/doc/gopath_code).
 
@@ -49,37 +48,91 @@ gdpm-client works as a command-line tool for users to send requests to the maste
 
 2. Start your etcd cluster. Please see the [official guide](https://etcd.io/docs/v3.5/dev-guide/local_cluster/).
 
-3. Compile and install the executables. You must set the environment variables ```$GOPATH``` or ```$GOBIN``` before running the following commands. The command compiles the executables and move the executables to the folder ```$GOPATH/bin``` or ```$GOBIN``` if specified.
+3. Install the dependencies, compile and install the executables. You must set the environment variables ```$GOPATH``` or ```$GOBIN``` before running the following commands. The command compiles the executables and move the executables to the folder ```$GOPATH/bin``` or ```$GOBIN``` if specified.
 
     ```bash
+    go mod download
     make install
     ```
 
-#### FRONT END
+#### How to Build and Start the Web GUI
 
-1. make sure you have installed node.js and npm on you computer
-    (https://nodejs.org/en/download/)
-
-2. go to /web directory
+1. Change the working directory into the ```web``` directory.
 
     ```bash
-    cd web
+    cd $GOPATH/src/github.com/gdpm/web
     ```
 
-3. install dependencies
+2. Install dependencies.
 
     ```bash
     npm install
     ```
 
-4. launch development server
+3. Launch development server.
 
     ```bash
     npm run dev
     ```
-5. go to http://localhost:3000
 
-### Command Line Usage
+4. Open ```http://localhost:3000``` in your browser.
+
+### Example Usage
+
+1. Check the etcd's status.
+
+    ```bash
+    etcdctl member list
+    ```
+
+    If the etcd cluster is running, you should see the following log.
+
+    ```bash
+    8e9e05c52164694d, started, default, http://localhost:2380, http://localhost:2379, false
+    ```
+
+2. Start the master node.
+
+    ```bash
+    gdpm-master
+    ```
+
+    ```bash
+    # example output
+    2022/06/11 01:24:30 http server is listening at 0.0.0.0:8989
+    2022/06/11 01:24:30 Server starts listening for connection at 0.0.0.0:8888.
+    ```
+
+3. Start a worker node(s).
+
+    ```bash
+    gdpm-slave
+    ```
+
+4. Review the status of the cluster. The command lists the id, status and number of services of a node.
+
+    ```bash
+    # the command list current worker nodes in the cluster
+    gdpm-client get nodes
+    ```
+
+5. Start a service. The following command tells the master to schedule a service consist of n instance and each of the instance runs the given command.
+
+    ```bash
+    gdpm-client -r <instance number> <command>
+
+    # the following command spawn 5 processes and all run the giving
+    # python command
+    gdpm-client -r 5 python /absolute/directory/path/test.py
+    ```
+
+6. Review the status of a worker node. The command lists all services' status on the given node.
+
+    ```bash
+    gdpm-client get node <id>
+    ```
+
+7. Besides CLI, you can also use the Web GUI to manage node and services.
 
 ### API Usage
 

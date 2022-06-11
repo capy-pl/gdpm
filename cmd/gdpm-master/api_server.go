@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
-    "github.com/rs/cors"
 	"github.com/gdpm/service"
 	"github.com/gdpm/slave"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 func handleCreateService(pool *slave.SlavePool) func(res http.ResponseWriter, req *http.Request) {
@@ -40,13 +40,8 @@ func handleCreateService(pool *slave.SlavePool) func(res http.ResponseWriter, re
 
 			pool.ScheduleService(sv)
 
-			encoder := json.NewEncoder(res)
-			jsonResponse := defaultResponse{
-				success: true,
-				msg: "create service success",					
-			}
-			
-			encoder.Encode(jsonResponse)
+			res.WriteHeader(http.StatusOK)
+			res.Write([]byte(sv.Id))
 		} else {
 			http.Error(res, "method not allowed", http.StatusMethodNotAllowed)
 		}
@@ -58,11 +53,10 @@ func handleUpdateService(pool *slave.SlavePool) func(res http.ResponseWriter, re
 		log.Println("Update service request is received.")
 		req.ParseForm()
 		instanceNumStr := req.PostFormValue("InstanceNum")
-		log.Printf("instanceNumStr is %s",instanceNumStr)
 		instanceNum, err := strconv.Atoi(instanceNumStr)
 		params := mux.Vars(req)
 		serviceId := params["serviceId"]
-		log.Printf("serviceId is %s,instanceNum is %d",serviceId,instanceNum)
+		log.Printf("serviceId is %s,instanceNum is %d", serviceId, instanceNum)
 		if err != nil || instanceNum < 0 {
 			http.Error(res, "not a valid instanceNum", http.StatusBadRequest)
 			return
@@ -96,7 +90,7 @@ type GetNodesResponse struct {
 
 type defaultResponse struct {
 	success bool
-	msg string
+	msg     string
 }
 
 func handleGetNodes(pool *slave.SlavePool) func(res http.ResponseWriter, req *http.Request) {
@@ -173,7 +167,7 @@ func startHttpServer(pool *slave.SlavePool) {
 	nodeHandle.HandleFunc("/", handleGetNodes(pool))
 	nodeHandle.HandleFunc("/{nodeId}/", handleGetNode(pool))
 
-    handler := cors.Default().Handler(r)
+	handler := cors.Default().Handler(r)
 	server := &http.Server{
 		Handler:      handler,
 		Addr:         strings.Join([]string{ListeningAddress, HTTPListeningPort}, ":"),

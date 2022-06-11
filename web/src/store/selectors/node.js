@@ -8,13 +8,11 @@ export const coursesPagination = createSelector(
     (state, page) => page
   ],
   (result, page) => {
-  console.log('result :', result);
     if(!result) return [];
     // return result.filter((course, index) => {
     //   return index >= (page - 1) * PAGE_COUNT && index < page * PAGE_COUNT;
     // })
 
-    console.log('result :', result);
     return result;
   }
 )

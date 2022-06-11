@@ -37,7 +37,6 @@ function Home() {
   const [refresh, setRefresh] = useState(true);
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
-  // const courses = useSelector(state => {console.log(state.course.result.nodes); return(state.course.result.nodes)});
   const courses = useSelector(state => coursesPagination(state, page));
   ;
 

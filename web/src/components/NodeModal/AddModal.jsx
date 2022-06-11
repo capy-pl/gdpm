@@ -29,7 +29,6 @@ export default function FormDialog({open,setOpen}) {
   const handleSubmit = (e) => {
       e.preventDefault();
       setLoading(true);
-      console.log('hi');
     dispatch(createWork(command,numOfWork)).then(() => {
         setOpen(false);
         setLoading(false);
