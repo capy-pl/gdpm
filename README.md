@@ -77,7 +77,7 @@ gdpm-client works as a command-line tool for users to send requests to the maste
 
 4. Open ```http://localhost:3000``` in your browser.
 
-### Example Usage
+## Example Usage
 
 1. Check the etcd's status.
 
@@ -134,7 +134,7 @@ gdpm-client works as a command-line tool for users to send requests to the maste
 
 7. Besides CLI, you can also use the Web GUI to manage node and services.
 
-### API Usage
+## API Usage
 
 1. List all nodes. ```[http GET]http://localhost:8989/node/```
 
